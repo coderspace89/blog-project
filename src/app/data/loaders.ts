@@ -1,6 +1,7 @@
 import { getStrapiURL } from "../utils/get-strapi-url";
 import { fetchAPI } from "../utils/fetch-api";
 import qs from "qs";
+import { fi } from "zod/v4/locales";
 
 const BLOG_PAGE_SIZE = 3;
 const BASE_URL = getStrapiURL();
@@ -139,4 +140,24 @@ export async function getGlobalSettings() {
   return fetchAPI(url.href, { method: "GET" });
 }
 
+export async function getContent(path: string, featured?: boolean, query?: string) {
+  const url = new URL(path, BASE_URL);
 
+  url.search = qs.stringify({
+    sort: ["createdAt:desc"],
+    filters: {
+      $or: [
+        { title: { $containsi: query } },
+        { description: { $containsi: query } },
+      ],
+      ...(featured && { featured: { $eq: featured } }),
+    },
+    populate: {
+      image: {
+        fields: ["url", "alternativeText"],
+      },
+    },
+  });
+
+  return fetchAPI(url.href, { method: "GET" });
+}
