@@ -27,6 +27,8 @@ export default async function BlogRoute({ searchParams }: PageProps) {
                 featured={true}
                 showSearch={true}
                 query={query}
+                page={page}
+                showPagination
             />
         </div>
     );

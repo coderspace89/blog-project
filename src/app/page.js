@@ -11,6 +11,7 @@ async function loader() {
   return { ...data.data };
 }
 
+
 export default async function HomeRoute() {
   const data = await loader();
   const blocks = data?.blocks || [];
@@ -23,6 +24,7 @@ export default async function HomeRoute() {
           headline="checkout our latest articles"
           path="/api/articles"
           component={BlogCard}
+          featured
         />
       </div>
     </div>

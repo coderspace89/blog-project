@@ -1,7 +1,6 @@
 import { getStrapiURL } from "../utils/get-strapi-url";
 import { fetchAPI } from "../utils/fetch-api";
 import qs from "qs";
-import { fi } from "zod/v4/locales";
 
 const BLOG_PAGE_SIZE = 3;
 const BASE_URL = getStrapiURL();
@@ -140,7 +139,7 @@ export async function getGlobalSettings() {
   return fetchAPI(url.href, { method: "GET" });
 }
 
-export async function getContent(path: string, featured?: boolean, query?: string) {
+export async function getContent(path: string, featured?: boolean, query?: string, page?: string) {
   const url = new URL(path, BASE_URL);
 
   url.search = qs.stringify({
@@ -152,10 +151,94 @@ export async function getContent(path: string, featured?: boolean, query?: strin
       ],
       ...(featured && { featured: { $eq: featured } }),
     },
+    pagination: {
+      pageSize: BLOG_PAGE_SIZE,
+      page: parseInt(page || "1"),
+    },
     populate: {
       image: {
         fields: ["url", "alternativeText"],
       },
+    },
+  });
+
+  return fetchAPI(url.href, { method: "GET" });
+}
+
+const blogPopulate = {
+  blocks: {
+    on: {
+      "blocks.hero-section": {
+        populate: {
+          image: {
+            fields: ["url", "alternativeText"],
+          },
+          logo: {
+            populate: {
+              image: {
+                fields: ["url", "alternativeText"],
+              },
+            },
+          },
+          cta: true,
+        },
+      },
+      "blocks.info-block": {
+        populate: {
+          image: {
+            fields: ["url", "alternativeText"],
+          },
+          cta: true,
+        },
+      },
+      "blocks.featured-article": {
+        populate: {
+          image: {
+            fields: ["url", "alternativeText"],
+          },
+          link: true,
+        },
+      },
+      "blocks.subscribe": {
+        populate: true,
+      },
+      "blocks.heading": {
+        populate: true,
+      },
+      "blocks.paragraph-with-image": {
+        populate: {
+          image: {
+            fields: ["url", "alternativeText"],
+          },
+        },
+      },
+      "blocks.paragraph": {
+        populate: true,
+      },
+      "blocks.full-image": {
+        populate: {
+          image: {
+            fields: ["url", "alternativeText"],
+          },
+        },
+      },
+    },
+  },
+};
+
+export async function getContentBySlug(slug: string, path: string) {
+  const url = new URL(path, BASE_URL);
+  url.search = qs.stringify({
+    filters: {
+      slug: {
+        $eq: slug,
+      },
+    },
+    populate: {
+      image: {
+        fields: ["url", "alternativeText"],
+      },
+      ...blogPopulate,
     },
   });
 
